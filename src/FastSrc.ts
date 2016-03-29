@@ -15,7 +15,7 @@ import * as es from 'event-stream';
 import * as vinylfs from 'vinyl-fs';
 import * as gutil from 'gulp-util';
 import * as path from 'path';
-import * as minimatch from "minimatch";
+import * as minimatch from 'minimatch';
 import q = require('q');
 import touch = require('touch');
 import gulpType = require('gulp');
@@ -60,9 +60,9 @@ let endTaskSrc: (taskName: string, startHrtime: number[], fileCount: number) => 
 
 const FILE_CHANGE_SMUGE_TIME = 50;
 
-const TASK_START_TIMES_CACHE_SECTION = "fastSrc-taskStartTimes";
-const FILES_TO_TOUCH_CACHE_SECTION = "fastSrc-filesToTouch";
-const FILE_DEPENDENCY_GRAPH_CACHE_SECTION = "fastSrc-fileDependencyGraph";
+const TASK_START_TIMES_CACHE_SECTION = 'fastSrc-taskStartTimes';
+const FILES_TO_TOUCH_CACHE_SECTION = 'fastSrc-filesToTouch';
+const FILE_DEPENDENCY_GRAPH_CACHE_SECTION = 'fastSrc-fileDependencyGraph';
 
 function fixUpNewPaths(file: gutil.File) {
     'use strict';
@@ -541,7 +541,7 @@ function addDevLinkPaths(file: gutil.File) {
     'use strict';
     for (let x in devLinkPaths) {
         if (file.path.indexOf(x) === 0) {
-            for (var devLinkPath of devLinkPaths[x]) {
+            for (let devLinkPath of devLinkPaths[x]) {
                 let clonedFile = file.clone({ deep: false, contents: false });
                 clonedFile.path = path.join(devLinkPath, file.path.substring(x.length));
                 addFileToCache(clonedFile);
@@ -613,7 +613,7 @@ function removeFileFromCache(filePath: string): IAddFileCacheOutput {
     for (let x in devLinkPaths) {
         let normalizedDevLink = normalizeFileCachePath(x);
         if (normalizeFilePath.indexOf(normalizedDevLink) === 0) {
-            for (var devLinkPath of devLinkPaths[x]) {
+            for (let devLinkPath of devLinkPaths[x]) {
                 let pathToDelete = path.join(devLinkPath, filePath.substring(x.length));
                 removeFileFromCache(pathToDelete);
             }
@@ -706,7 +706,7 @@ function getFilesFromSearch(resultFiles: gutil.File[], pattern: string, srcOptio
 
     for (let x = 0; x < splitPattern.length; x++) {
         let pathSegment = splitPattern[x];
-        if (pathSegment === "**" || pathSegment.indexOf("*") >= 0) {
+        if (pathSegment === '**' || pathSegment.indexOf('*') >= 0) {
             let base = srcOptions && srcOptions.base ?
                 srcOptions.base :
                 originalPattern.slice(0, x).join(path.sep);
@@ -717,7 +717,7 @@ function getFilesFromSearch(resultFiles: gutil.File[], pattern: string, srcOptio
                 splitPattern,
                 lastIndex,
                 base,
-                pathSegment === "**",
+                pathSegment === '**',
                 false);
             break;
         } else {
@@ -753,7 +753,7 @@ function getAllFilesUnderNode(
     takeAllFilesUnder: boolean) {
     'use strict';
     for (let x in currentSegment) {
-        if (x !== "____dir") {
+        if (x !== '____dir') {
             let segment = currentSegment[x];
 
             if (segment.____dir && traverse) {
@@ -768,7 +768,8 @@ function getAllFilesUnderNode(
                     takeAllFilesUnder);
             } else if (takeAllFilesUnder || fileMatchesRegex(splitPattern[lastIndex], x)) {
                 if (segment.____dir) {
-                    // We have a dir hit so we need to do a traverse on it and take all files under it (e.g. /knockout/*)
+                    // We have a dir hit so we need to do a traverse on it 
+                    // and take all files under it (e.g. /knockout/*)
                     getAllFilesUnderNode(
                         resultFiles,
                         segment,
