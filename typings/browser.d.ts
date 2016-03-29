@@ -6,6 +6,7 @@
 /// <reference path="browser/ambient/q/index.d.ts" />
 /// <reference path="browser/ambient/through2/index.d.ts" />
 /// <reference path="browser/ambient/vinyl-fs/index.d.ts" />
+/// <reference path="browser/definitions/gulp/index.d.ts" />
 /// <reference path="browser/definitions/minimatch/index.d.ts" />
 /// <reference path="browser/definitions/through2/index.d.ts" />
 /// <reference path="browser/definitions/touch/index.d.ts" />

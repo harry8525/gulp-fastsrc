@@ -10,6 +10,7 @@
     "vinyl-fs": "registry:dt/vinyl-fs#0.0.0+20160317120654"
   },
   "dependencies": {
+    "gulp": "registry:npm/gulp#3.8.0+20160211003958",
     "minimatch": "registry:npm/minimatch#3.0.0+20160211003958",
     "through2": "registry:npm/through2#2.0.0+20160308004148",
     "touch": "registry:npm/touch#1.0.0+20160211003958"
