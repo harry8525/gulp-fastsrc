@@ -1,8 +1,12 @@
 /// <reference path='../typings/main.d.ts' />
 
 /**
- * This file has helpers to speed up gulp.src. It creates a really fast in memory cache of all of the src contents. This removes a ton of IO
- * from the build. It also has helpers to filter out files that have not changed and cache this between builds to allow for it to be super
+ * This file has helpers to speed up gulp.src. 
+ * It creates a really fast in memory cache of 
+ * all of the src contents. This removes a ton of IO
+ * from the build. It also has helpers to filter 
+ * out files that have not changed and cache 
+ * this between builds to allow for it to be super
  * fast for incremental changes.
  */
 
@@ -15,6 +19,7 @@ import * as minimatch from "minimatch";
 import q = require('q');
 import touch = require('touch');
 import gulpType = require('gulp');
+import { Readable } from 'stream';
 
 interface ICacheNode {
     ____dir: any;
@@ -51,7 +56,7 @@ let isWatchMode: boolean = false;
 let gulp: gulpType.Gulp;
 let log: (...s: string[]) => void;
 let error: (...s: string[]) => void;
-let endTaskSrc: (taskName: string, startHrtime: number[], fileCount:number) => void;
+let endTaskSrc: (taskName: string, startHrtime: number[], fileCount: number) => void;
 
 const FILE_CHANGE_SMUGE_TIME = 50;
 
@@ -73,7 +78,7 @@ export function init(
         isWatchMode: boolean,
         log: (...s: string[]) => void,
         error: (...s: string[]) => void,
-        endTaskSrc: (taskName: string, startHrtime: number[], fileCount:number) => void,
+        endTaskSrc: (taskName: string, startHrtime: number[], fileCount: number) => void,
         saveSection: (
             name: string,
             saveCallback: () => any)
@@ -257,7 +262,7 @@ export function fillCache(taskName: string, srcGlob: string | string[], rootPath
             .pipe(through2.obj(
                 function(file: gutil.File, encoding: string, callback: (p?: any) => void) {
                     'use strict';
-                    if (!file.isDirectory()) {
+                    if (!file['isDirectory']()) {
                         fixUpNewPaths(file);
 
                         // Make sure all files changed between watches
@@ -419,7 +424,10 @@ export function getCachedFile(path: string): gutil.File {
     return files.length > 0 ? files[0] : null;
 }
 
-export function cacheSrc(taskName: string, srcGlob: string | string[], srcOptions?: ISourceOptions) {
+export function cacheSrc(
+    taskName: string,
+    srcGlob: string | string[],
+    srcOptions?: ISourceOptions): Readable {
     'use strict';
     srcOptions = srcOptions ? srcOptions : <ISourceOptions>{};
 
@@ -467,10 +475,13 @@ export function cacheSrc(taskName: string, srcGlob: string | string[], srcOption
         this.emit('end');
     });
 
-    return stream;
+    return <any>stream;
 }
 
-export function cacheAllSrc(taskName: string, srcGlob: string | string[], srcOptions?: ISourceOptions) {
+export function cacheAllSrc(
+    taskName: string,
+    srcGlob: string | string[],
+    srcOptions?: ISourceOptions): Readable {
     'use strict';
     srcOptions = srcOptions ? srcOptions : <ISourceOptions>{};
 
@@ -514,7 +525,7 @@ export function cacheAllSrc(taskName: string, srcGlob: string | string[], srcOpt
         this.emit('end');
     });
 
-    return stream;
+    return <any>stream;
 }
 
 function makeAbsolute(str: string) {
@@ -696,8 +707,18 @@ function getFilesFromSearch(resultFiles: gutil.File[], pattern: string, srcOptio
     for (let x = 0; x < splitPattern.length; x++) {
         let pathSegment = splitPattern[x];
         if (pathSegment === "**" || pathSegment.indexOf("*") >= 0) {
-            let base = srcOptions && srcOptions.base ? srcOptions.base : originalPattern.slice(0, x).join(path.sep);
-            getAllFilesUnderNode(resultFiles, currentSegment, pattern, splitPattern, lastIndex, base, pathSegment === "**", false);
+            let base = srcOptions && srcOptions.base ?
+                srcOptions.base :
+                originalPattern.slice(0, x).join(path.sep);
+            getAllFilesUnderNode(
+                resultFiles,
+                currentSegment,
+                pattern,
+                splitPattern,
+                lastIndex,
+                base,
+                pathSegment === "**",
+                false);
             break;
         } else {
             if (!currentSegment) {
@@ -707,8 +728,12 @@ function getFilesFromSearch(resultFiles: gutil.File[], pattern: string, srcOptio
             currentSegment = currentSegment[pathSegment];
 
             // We have a file that matches the last segement
-            if (x === splitPattern.length - 1 && currentSegment && !(<ICacheNode>currentSegment).____dir) {
-                let base2 = srcOptions && srcOptions.base ? srcOptions.base : originalPattern.slice(0, x).join(path.sep);
+            if (x === splitPattern.length - 1 &&
+                currentSegment &&
+                !(<ICacheNode>currentSegment).____dir) {
+                let base2 = srcOptions && srcOptions.base ?
+                    srcOptions.base :
+                    originalPattern.slice(0, x).join(path.sep);
                 let result = (<gutil.File>currentSegment).clone({ deep: false, contents: false });
                 result.base = makeAbsolute(base2);
                 resultFiles.push(result);
@@ -717,18 +742,42 @@ function getFilesFromSearch(resultFiles: gutil.File[], pattern: string, srcOptio
     }
 }
 
-function getAllFilesUnderNode(resultFiles: gutil.File[], currentSegment: ICacheNode | gutil.File, pattern: string, splitPattern: string[], lastIndex: number, base: string, traverse: boolean, takeAllFilesUnder: boolean) {
+function getAllFilesUnderNode(
+    resultFiles: gutil.File[],
+    currentSegment: ICacheNode | gutil.File,
+    pattern: string,
+    splitPattern: string[],
+    lastIndex: number,
+    base: string,
+    traverse: boolean,
+    takeAllFilesUnder: boolean) {
     'use strict';
     for (let x in currentSegment) {
         if (x !== "____dir") {
             let segment = currentSegment[x];
 
             if (segment.____dir && traverse) {
-                getAllFilesUnderNode(resultFiles, segment, pattern, splitPattern, lastIndex, base, traverse, takeAllFilesUnder);
+                getAllFilesUnderNode(
+                    resultFiles,
+                    segment,
+                    pattern,
+                    splitPattern,
+                    lastIndex,
+                    base,
+                    traverse,
+                    takeAllFilesUnder);
             } else if (takeAllFilesUnder || fileMatchesRegex(splitPattern[lastIndex], x)) {
                 if (segment.____dir) {
                     // We have a dir hit so we need to do a traverse on it and take all files under it (e.g. /knockout/*)
-                    getAllFilesUnderNode(resultFiles, segment, pattern, splitPattern, lastIndex, base, true, true);
+                    getAllFilesUnderNode(
+                        resultFiles,
+                        segment,
+                        pattern,
+                        splitPattern,
+                        lastIndex,
+                        base,
+                        true,
+                        true);
                 } else {
                     let result = segment.clone({ deep: false, contents: false });
                     result.base = makeAbsolute(base);
