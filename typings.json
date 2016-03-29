@@ -5,6 +5,7 @@
     "gulp-util": "registry:dt/gulp-util#0.0.0+20160316155526",
     "minimatch": "registry:dt/minimatch#2.0.8+20160317120654",
     "node": "registry:dt/node#4.0.0+20160319033040",
+    "q": "registry:dt/q#0.0.0+20160323171452",
     "through2": "registry:dt/through2#2.0.0+20160317120654",
     "vinyl-fs": "registry:dt/vinyl-fs#0.0.0+20160317120654"
   },

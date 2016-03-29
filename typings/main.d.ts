@@ -3,6 +3,7 @@
 /// <reference path="main/ambient/gulp/index.d.ts" />
 /// <reference path="main/ambient/minimatch/index.d.ts" />
 /// <reference path="main/ambient/node/index.d.ts" />
+/// <reference path="main/ambient/q/index.d.ts" />
 /// <reference path="main/ambient/through2/index.d.ts" />
 /// <reference path="main/ambient/vinyl-fs/index.d.ts" />
 /// <reference path="main/definitions/minimatch/index.d.ts" />
