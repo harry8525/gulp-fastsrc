@@ -16,6 +16,7 @@ import { endTaskSrc, getWatchMode, error, log } from '../log/Log';
 import * as minimatch from "minimatch";
 import q = require('q');
 import touch = require('touch');
+import gulp = require('gulp');
 
 interface ICacheNode {
     ____dir: any;
