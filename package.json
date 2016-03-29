@@ -1,0 +1,27 @@
+{
+  "name": "gulp-fastsrc",
+  "version": "1.0.0",
+  "description": "An in memory implementation of gulp src that is fast",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/harry8525/gulp-fastsrc.git"
+  },
+  "keywords": [
+    "gulp",
+    "fastsrc"
+  ],
+  "author": "Harry Ferguson",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/harry8525/gulp-fastsrc/issues"
+  },
+  "homepage": "https://github.com/harry8525/gulp-fastsrc#readme",
+  "devDependencies": {
+    "gulp": "^3.9.1",
+    "node-library-build": "0.0.5"
+  }
+}
