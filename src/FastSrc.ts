@@ -11,12 +11,10 @@ import * as es from 'event-stream';
 import * as vinylfs from 'vinyl-fs';
 import * as gutil from 'gulp-util';
 import * as path from 'path';
-import { saveSection, getSection } from '../buildCache/BuildCache';
-import { endTaskSrc, getWatchMode, error, log } from '../log/Log';
 import * as minimatch from "minimatch";
 import q = require('q');
 import touch = require('touch');
-import gulp = require('gulp');
+import gulpType = require('gulp');
 
 interface ICacheNode {
     ____dir: any;
@@ -48,27 +46,18 @@ let changedFiles = Object.create(null);
 let filesToTouch: string[] = null;
 let fileDependencyGraph: { [key: string]: string } = null;
 let hasTouchedFiles = false;
+let getSection: (sectionName: string) => any = null;
+let isWatchMode: boolean = false;
+let gulp: gulpType.Gulp;
+let log: (...s: string[]) => void;
+let error: (...s: string[]) => void;
+let endTaskSrc: (taskName: string, startHrtime: number[], fileCount:number) => void;
 
 const FILE_CHANGE_SMUGE_TIME = 50;
 
 const TASK_START_TIMES_CACHE_SECTION = "fastSrc-taskStartTimes";
 const FILES_TO_TOUCH_CACHE_SECTION = "fastSrc-filesToTouch";
 const FILE_DEPENDENCY_GRAPH_CACHE_SECTION = "fastSrc-fileDependencyGraph";
-
-saveSection(TASK_START_TIMES_CACHE_SECTION, function() {
-    'use strict';
-    return taskStartTimes;
-});
-
-saveSection(FILES_TO_TOUCH_CACHE_SECTION, function() {
-    'use strict';
-    return { filesToTouch: filesToTouch };
-});
-
-saveSection(FILE_DEPENDENCY_GRAPH_CACHE_SECTION, function() {
-    'use strict';
-    return fileDependencyGraph;
-});
 
 function fixUpNewPaths(file: gutil.File) {
     'use strict';
@@ -78,8 +67,41 @@ function fixUpNewPaths(file: gutil.File) {
     }
 }
 
-export function wireUpGulp(gulp: gulp.Gulp) {
+export function init(
+    options: {
+        gulp: gulpType.Gulp,
+        isWatchMode: boolean,
+        log: (...s: string[]) => void,
+        error: (...s: string[]) => void,
+        endTaskSrc: (taskName: string, startHrtime: number[], fileCount:number) => void,
+        saveSection: (
+            name: string,
+            saveCallback: () => any)
+            => void,
+        getSection: (sectionName: string) => any
+    }) {
     'use strict';
+
+    isWatchMode = options.isWatchMode;
+    getSection = options.getSection;
+    log = options.log;
+    error = options.error;
+    gulp = options.gulp;
+
+    options.saveSection(TASK_START_TIMES_CACHE_SECTION, function() {
+        'use strict';
+        return taskStartTimes;
+    });
+
+    options.saveSection(FILES_TO_TOUCH_CACHE_SECTION, function() {
+        'use strict';
+        return { filesToTouch: filesToTouch };
+    });
+
+    options.saveSection(FILE_DEPENDENCY_GRAPH_CACHE_SECTION, function() {
+        'use strict';
+        return fileDependencyGraph;
+    });
 
     if (!wiredUpGulp) {
         wiredUpGulp = true;
@@ -109,84 +131,7 @@ export function setTaskAsErrored(taskName: string) {
     }
 }
 
-export function src(taskName: string, gulp: gulp.Gulp, srcGlob: string | string[], srcOptions: ISourceOptions, changedPath: string, changedOptions: ISourceOptions) {
-    'use strict';
-    srcOptions = srcOptions ? srcOptions : <ICacheNode>{};
-
-    if (srcOptions.follow === undefined) {
-        srcOptions.follow = true;
-    }
-
-    if (srcOptions.allowEmpty === undefined) {
-        srcOptions.allowEmpty = true;
-    }
-
-    if (!taskStartTimes) {
-        taskStartTimes = getSection(TASK_START_TIMES_CACHE_SECTION, { checkBranch: true });
-    }
-
-    let lastRun = taskStartTimes[taskName];
-    if (lastRun) {
-        srcOptions.since = lastRun;
-    }
-
-    newTaskStartTimes[taskName] = (new Date()).getTime();
-    let startHrtime = process.hrtime();
-    let fileCount = 0;
-
-    return vinylfs.src(srcGlob, srcOptions)
-        .pipe(through2.obj(
-            function(file: gutil.File, encoding: string, callback: () => void) {
-                'use strict';
-                fixUpNewPaths(file);
-                this.push(file);
-                fileCount++;
-                callback();
-            },
-            function(callback: () => void) {
-                'use strict';
-                endTaskSrc(taskName, startHrtime, fileCount);
-                callback();
-            }));
-}
-
-export function srcAll(taskName: string, gulp: gulp.Gulp, srcGlob: string | string[], srcOptions: ISourceOptions) {
-    'use strict';
-    srcOptions = srcOptions ? srcOptions : <ICacheNode>{};
-
-    if (srcOptions.follow === undefined) {
-        srcOptions.follow = true;
-    }
-
-    if (srcOptions.allowEmpty === undefined) {
-        srcOptions.allowEmpty = true;
-    }
-
-    if (!taskStartTimes) {
-        taskStartTimes = getSection(TASK_START_TIMES_CACHE_SECTION, { checkBranch: true });
-    }
-
-    newTaskStartTimes[taskName] = (new Date()).getTime();
-    let startHrtime = process.hrtime();
-    let fileCount = 0;
-
-    return vinylfs.src(srcGlob, srcOptions)
-        .pipe(through2.obj(
-            function(file: gutil.File, encoding: string, callback: (p?: any) => void) {
-                'use strict';
-                fixUpNewPaths(file);
-                this.push(file);
-                fileCount++;
-                callback();
-            },
-            function(callback: () => void) {
-                'use strict';
-                endTaskSrc(taskName, startHrtime, fileCount);
-                callback();
-            }));
-}
-
-export function addDevLink(pathToLink: string, linkPath: string) {
+export function addSymlink(pathToLink: string, linkPath: string) {
     'use strict';
 
     let devLinkPathArray = devLinkPaths[pathToLink];
@@ -196,7 +141,7 @@ export function addDevLink(pathToLink: string, linkPath: string) {
     devLinkPathArray.push(linkPath);
 }
 
-export function listenToWatchChanges(watcher: gulp.EventEmitter) {
+export function listenToWatchChanges(watcher: any) {
     'use strict';
     watcher['on']('change', function(filePath: string) {
         changedFiles[path.normalize(filePath)] = true;
@@ -222,8 +167,8 @@ export function touchAllFiles() {
     let promises: q.IPromise<void>[] = [];
 
     // Make sure we dont reset the files to touch in watch mode
-    if (!getWatchMode()) {
-        let section = getSection(FILES_TO_TOUCH_CACHE_SECTION, { checkBranch: true });
+    if (!isWatchMode) {
+        let section = getSection(FILES_TO_TOUCH_CACHE_SECTION);
 
         if (section) {
             filesToTouch = section.filesToTouch || [];
@@ -232,15 +177,14 @@ export function touchAllFiles() {
         filesToTouch = [];
     }
 
-    if (!getWatchMode() || !hasTouchedFiles) {
+    if (!isWatchMode || !hasTouchedFiles) {
         hasTouchedFiles = true;
         log(`Touching ${filesToTouch.length} files so they will be rebuilt`);
 
         function createPromise(filePath: string) {
             return q.Promise<void>((resolved: () => void, reject: (error: any) => void) => {
                 touch(filePath, {
-                    nocreate: true,
-                    closeAfter: true
+                    nocreate: true
                 }, function(err: any) {
                     if (err) {
                         reject(err);
@@ -269,7 +213,7 @@ export function touchAllFiles() {
     return q.all(promises);
 }
 
-export function fillCache(taskName: string, gulp: gulp.Gulp, srcGlob: string | string[], rootPath: string, addMode?: boolean) {
+export function fillCache(taskName: string, srcGlob: string | string[], rootPath: string, addMode?: boolean) {
     'use strict';
     let srcOptions: ISourceOptions = {
         base: rootPath,
@@ -291,7 +235,7 @@ export function fillCache(taskName: string, gulp: gulp.Gulp, srcGlob: string | s
 
             // If in watch mode and its not the first read
             // only send the changed files
-            if (getWatchMode()) {
+            if (isWatchMode) {
                 updateMTime = true;
                 readSrcGlob = [];
                 srcOptions.since = undefined;
@@ -357,7 +301,7 @@ export function cacheDest(destLocation: string, options?: {
         function(file: gutil.File, encoding: string, callback: () => void) {
 
             if (!fileDependencyGraph) {
-                fileDependencyGraph = getSection(FILE_DEPENDENCY_GRAPH_CACHE_SECTION, { checkBranch: true });
+                fileDependencyGraph = getSection(FILE_DEPENDENCY_GRAPH_CACHE_SECTION);
             }
 
             // Create a dependency graph to use to detect deleted files
@@ -400,10 +344,10 @@ export function cacheDest(destLocation: string, options?: {
         });
 };
 
-export function hasWork(taskName: string, gulp: gulp.Gulp, srcGlob: string | string[]) {
+export function hasWork(taskName: string, srcGlob: string | string[]) {
     'use strict';
     if (!taskStartTimes) {
-        taskStartTimes = getSection(TASK_START_TIMES_CACHE_SECTION, { checkBranch: true });
+        taskStartTimes = getSection(TASK_START_TIMES_CACHE_SECTION);
     }
 
     let lastRun = taskStartTimes[taskName];
@@ -432,7 +376,7 @@ export function wasFileDeleted(file: gutil.File): boolean {
     'use strict';
 
     if (!fileDependencyGraph) {
-        fileDependencyGraph = getSection(FILE_DEPENDENCY_GRAPH_CACHE_SECTION, { checkBranch: true });
+        fileDependencyGraph = getSection(FILE_DEPENDENCY_GRAPH_CACHE_SECTION);
     }
 
     // Get to the root dependency
@@ -475,12 +419,12 @@ export function getCachedFile(path: string): gutil.File {
     return files.length > 0 ? files[0] : null;
 }
 
-export function cacheSrc(taskName: string, gulp: gulp.Gulp, srcGlob: string | string[], srcOptions?: ISourceOptions) {
+export function cacheSrc(taskName: string, srcGlob: string | string[], srcOptions?: ISourceOptions) {
     'use strict';
     srcOptions = srcOptions ? srcOptions : <ISourceOptions>{};
 
     if (!taskStartTimes) {
-        taskStartTimes = getSection(TASK_START_TIMES_CACHE_SECTION, { checkBranch: true });
+        taskStartTimes = getSection(TASK_START_TIMES_CACHE_SECTION);
     }
 
     let lastRun = taskStartTimes[taskName];
@@ -526,12 +470,12 @@ export function cacheSrc(taskName: string, gulp: gulp.Gulp, srcGlob: string | st
     return stream;
 }
 
-export function cacheAllSrc(taskName: string, gulp: gulp.Gulp, srcGlob: string | string[], srcOptions?: ISourceOptions) {
+export function cacheAllSrc(taskName: string, srcGlob: string | string[], srcOptions?: ISourceOptions) {
     'use strict';
     srcOptions = srcOptions ? srcOptions : <ISourceOptions>{};
 
     if (!taskStartTimes) {
-        taskStartTimes = getSection(TASK_START_TIMES_CACHE_SECTION, { checkBranch: true });
+        taskStartTimes = getSection(TASK_START_TIMES_CACHE_SECTION);
     }
 
     let lastRun = taskStartTimes[taskName];
