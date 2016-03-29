@@ -10,6 +10,9 @@
  * fast for incremental changes.
  */
 
+/* tslint:disable:forin */
+/* tslint:disable:no-string-literal */
+
 import * as through2 from 'through2';
 import * as es from 'event-stream';
 import * as vinylfs from 'vinyl-fs';
