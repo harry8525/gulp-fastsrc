@@ -1,7 +1,12 @@
 {
   "ambientDependencies": {
+    "event-stream": "registry:dt/event-stream#0.0.0+20160216030252",
     "gulp": "registry:dt/gulp#3.8.0+20160316155526",
-    "gulp-util": "registry:dt/gulp-util#0.0.0+20160316155526"
+    "gulp-util": "registry:dt/gulp-util#0.0.0+20160316155526",
+    "minimatch": "registry:dt/minimatch#2.0.8+20160317120654",
+    "node": "registry:dt/node#4.0.0+20160319033040",
+    "through2": "registry:dt/through2#2.0.0+20160317120654",
+    "vinyl-fs": "registry:dt/vinyl-fs#0.0.0+20160317120654"
   },
   "dependencies": {
     "minimatch": "registry:npm/minimatch#3.0.0+20160211003958",
