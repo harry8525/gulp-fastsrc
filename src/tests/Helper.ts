@@ -1,5 +1,9 @@
 import q = require('q');
 import {init} from '../FastSrc';
+import * as os from 'os';
+import * as path from 'path';
+import eos = require('end-of-stream');
+import consume = require('consume');
 
 export default class Helper {
     public static errorLogs: string[] = [];
@@ -18,13 +22,18 @@ export default class Helper {
     } = {};
 
     public static it<T>(name: string, run: () => q.Promise<T>) {
-        it(name, (done: (err?: any) => void) => {
+        it(name, function(done: (err?: any) => void) {
+            this.timeout(10000);
             run().then(() => {
                 done();
             }, (err: any) => {
                 done(err);
             });
         });
+    }
+
+    public static getRoot() {
+        return path.join(os.tmpdir(), 'gulp-fastsrc');
     }
 
     public static beforeEach() {
@@ -66,11 +75,21 @@ export default class Helper {
                 resolve: (res: boolean) => void,
                 reject: (error: any) => void
             ) => {
-                run().on('end', () => {
-                    resolve(true);
-                }).on('error', (err: any) => {
-                    reject(err);
+                let stream = run();
+                eos(stream, {
+                    error: true,
+                    readable: stream.readable,
+                    writable: stream.writable && !stream.readable
+                }, (err: any) => {
+                    if (err) {
+                        reject(err);
+                    } else {
+                        resolve(true);
+                    }
                 });
+
+                // Ensure that the stream completes 
+                consume(stream);
             });
     }
 

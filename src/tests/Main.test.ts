@@ -1,15 +1,13 @@
 /// <reference path='../../typings/main.d.ts' />
-import chai = require('chai');
 import Helper from './Helper';
 import {fillCache} from '../FastSrc';
-let expect = chai.expect;
 
 describe('basic', () => {
     Helper.beforeEach();
-    
+
     Helper.it('test', () => {
         return Helper.runTask('test', () => {
-            return fillCache('test', 'test/test/*', 'root');
+            return fillCache('test', '*', Helper.getRoot());
         });
     });
 });

@@ -22,6 +22,8 @@
   "homepage": "https://github.com/harry8525/gulp-fastsrc#readme",
   "devDependencies": {
     "chai": "^3.5.0",
+    "consume": "0.0.3",
+    "end-of-stream": "^1.1.0",
     "gulp": "^3.9.1",
     "node-library-build": "0.0.5"
   },
