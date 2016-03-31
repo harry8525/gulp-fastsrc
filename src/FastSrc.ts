@@ -95,6 +95,7 @@ export function init(
     log = options.log;
     error = options.error;
     gulp = options.gulp;
+    endTaskSrc = options.endTaskSrc;
 
     options.saveSection(TASK_START_TIMES_CACHE_SECTION, function() {
         'use strict';
