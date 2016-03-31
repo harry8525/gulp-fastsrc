@@ -5,8 +5,10 @@ import {fillCache} from '../FastSrc';
 let expect = chai.expect;
 
 describe('basic', () => {
+    Helper.beforeEach();
+    
     Helper.it('test', () => {
-        return Helper.runPipe(() => {
+        return Helper.runTask('test', () => {
             return fillCache('test', 'test/test/*', 'root');
         });
     });
