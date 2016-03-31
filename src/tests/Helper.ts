@@ -3,7 +3,8 @@ import {init} from '../FastSrc';
 import * as os from 'os';
 import * as path from 'path';
 import eos = require('end-of-stream');
-import consume = require('consume');
+import * as through2 from 'through2';
+import * as gutil from 'gulp-util';
 
 export default class Helper {
     public static errorLogs: string[] = [];
@@ -23,7 +24,7 @@ export default class Helper {
 
     public static it<T>(name: string, run: () => q.Promise<T>) {
         it(name, function(done: (err?: any) => void) {
-            this.timeout(10000);
+            this.timeout(60000);
             run().then(() => {
                 done();
             }, (err: any) => {
@@ -42,6 +43,8 @@ export default class Helper {
             this.logs = [];
             this.cache = {};
             this.cacheSaveCallbacks = {};
+            this.endSrcData = {};
+            this.gulpCallbacks = {};
 
             init({
                 gulp: <any>{
@@ -88,8 +91,16 @@ export default class Helper {
                     }
                 });
 
-                // Ensure that the stream completes 
-                consume(stream);
+                stream.pipe(through2.obj(
+                    function(file: gutil.File, encoding: string, callback: (p?: any) => void) {
+                        'use strict';
+
+                        callback();
+                    },
+                    function(callback: () => void) {
+                        'use strict';
+                        callback();
+                    }));
             });
     }
 
