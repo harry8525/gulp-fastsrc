@@ -95,7 +95,7 @@ export default class Helper {
                     function(file: gutil.File, encoding: string, callback: (p?: any) => void) {
                         'use strict';
 
-                        callback();
+                        callback2();
                     },
                     function(callback: () => void) {
                         'use strict';

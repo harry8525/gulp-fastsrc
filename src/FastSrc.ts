@@ -19,21 +19,21 @@ import * as vinylfs from 'vinyl-fs';
 import * as gutil from 'gulp-util';
 import * as path from 'path';
 import * as minimatch from 'minimatch';
-import q = require('q');
-import touch = require('touch');
+import q = require('q'); 
+import touch = require('touch'); 
 import gulpType = require('gulp');
-import { Readable } from 'stream';
+import { Readable } from 'stream';  
 
 interface ICacheNode {
     ____dir: any;
     [key: string]: ICacheNode | gutil.File;
 }
-
+ 
 interface IAddFileCacheOutput {
     file: gutil.File;
     newFile: boolean;
 }
-
+ 
 export interface ISourceOptions {
     alwaysPassThrough?: boolean;
     base?: string;
@@ -49,7 +49,7 @@ let newTaskStartTimes: { [key: string]: number } = {};
 let treeCachedFileSources: ICacheNode = Object.create(null);
 let devLinkPaths: { [key: string]: string[] } = Object.create(null);
 let regexCache = Object.create(null);
-let lastFillCacheRun = null;
+let lastFillCacheRun = null;  
 let changedFiles = Object.create(null);
 let filesToTouch: string[] = null;
 let fileDependencyGraph: { [key: string]: string } = null;
@@ -61,7 +61,7 @@ let log: (...s: string[]) => void;
 let error: (...s: string[]) => void;
 let endTaskSrc: (taskName: string, startHrtime: number[], fileCount: number) => void;
 
-const FILE_CHANGE_SMUGE_TIME = 50;
+const FILE_CHANGE_SMUGE_TIME = 50; 
 
 const TASK_START_TIMES_CACHE_SECTION = 'fastSrc-taskStartTimes';
 const FILES_TO_TOUCH_CACHE_SECTION = 'fastSrc-filesToTouch';
@@ -445,14 +445,14 @@ export function cacheSrc(
         srcOptions.since = lastRun;
     }
 
-    let newStartTime = (new Date()).getTime();
-
+    let newStartTime = (new Date()).getTime(); 
+ 
     // create a stream that waits and buffers until its later resumed
-    let stream = es.readable(function() {
+    let stream = es.readable(function() {   
         let startHrtime = process.hrtime();
-
+ 
         let resultFiles = [];
-
+ 
         if (srcGlob) {
             let filteredFiles = getFilteredFiles(srcGlob, srcOptions);
 

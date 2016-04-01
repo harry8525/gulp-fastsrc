@@ -1,0 +1,32 @@
+{
+    "version": "0.1.0",
+    "command": "gulp",
+    "isShellCommand": true,
+    "args": [
+        "--no-color"
+    ],
+    "tasks": [
+        {
+            "taskName": "default",
+            "args": [],
+            "isBuildCommand": true,
+            "problemMatcher": [
+                {
+                    "owner": "build",
+                    "fileLocation": [
+                        "relative",
+                        "${workspaceRoot}"
+                    ],
+                    "pattern": {
+                        "regexp": "^(\\[\\d+:\\d+:\\d+\\]\\s)Error\\s-\\s[a-zA-Z0-9]+\\s-\\s([a-zA-Z0-9\\\\\\.]+)\\((\\d+),(\\d+)\\):\\s(warning|error)\\s+([a-zA-Z0-9\\-]+):\\s(.*)$",
+                        "file": 2,
+                        "line": 3,
+                        "column": 4,
+                        "code": 6,
+                        "message": 7
+                    }
+                }
+            ]
+        }
+    ]
+}
